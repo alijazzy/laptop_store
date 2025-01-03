@@ -16,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordTextController = TextEditingController();
   bool _obscurePassword = true; // State untuk mengontrol visibilitas password
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? _errorMessage; // Variabel untuk menyimpan pesan error
 
   @override
   void dispose() {
@@ -37,8 +38,10 @@ class _LoginPageState extends State<LoginPage> {
           MaterialPageRoute(builder: (context) => HomePage()),
         );
       } catch (e) {
-        // Tambahkan logika untuk menangani kesalahan
-        print(e); // Anda bisa menampilkan snackbar atau dialog di sini
+        setState(() {
+          _errorMessage =
+              'Data pengguna tidak ada atau salah'; // Pesan kesalahan
+        });
       }
     }
   }
@@ -175,6 +178,15 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         validator: _validatePassword,
                       ),
+                      const SizedBox(height: 20.0),
+                      // Display error message
+                      if (_errorMessage != null) ...[
+                        Text(
+                          _errorMessage!,
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        const SizedBox(height: 10.0),
+                      ],
                       const SizedBox(height: 30.0),
                       // Login Button
                       SizedBox(
