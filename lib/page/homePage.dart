@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'shoppingCartPage.dart';
 import 'package:provider/provider.dart';
 import 'shoppingCartService.dart';
+import 'manage_screen.dart'; // Import halaman Manage Screen
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       endDrawer: Drawer(
+        backgroundColor: Colors.white,
         backgroundColor: Colors.white,
         child: ListView(
           children: [
@@ -47,6 +49,26 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => const CartPage()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.category),
+              title: const Text('Manage Screen'),
+              onTap: () {
+                // Navigate to ManageScreen with the collection 'laptop'
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ManageScreen(
+                      collection: 'laptop', // The collection name is 'laptop'
+                      title:
+                          'Manage Laptop Data', // You can update this to any title you prefer
+                      onLaptopImported: (List<List<dynamic>> data) {
+                        // Implement the callback for handling imported data
+                      },
+                    ),
+                  ),
+                );
               },
             ),
             const ListTile(
