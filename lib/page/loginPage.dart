@@ -77,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/background.jpg'),
+                image: AssetImage('assets/Logo/background.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -90,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    'assets/logo.png',
+                    'assets/Logo/logo.png',
                     height: 70.0,
                   ),
                 ],

@@ -27,7 +27,7 @@ class _RegisterPageState extends State<RegisterPage> {
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/background.jpg'),
+                image: AssetImage('assets/Logo/background.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -40,7 +40,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    'assets/logo.png',
+                    'Logo/logo.png',
                     height: 70.0,
                   ),
                 ],

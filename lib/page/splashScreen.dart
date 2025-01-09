@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage(
-                'assets/background.jpg'), // Ganti dengan nama file gambar background Anda
+                'assets/Logo/background.jpg'), // Ganti dengan nama file gambar background Anda
             fit: BoxFit.cover, // Mengatur gambar untuk menutupi seluruh area
           ),
         ),
@@ -39,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image(
-                image: AssetImage('assets/logo.png'),
+                image: AssetImage('assets/Logo/logo.png'),
                 width: 220,
                 height: 220, // Ganti height agar tidak terlalu tinggi
               ),
