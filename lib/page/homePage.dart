@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'manage_screen.dart'; // Import halaman Manage Screen
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -57,7 +58,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       endDrawer: Drawer(
-        backgroundColor: Colors.white, // Mengubah warna drawer menjadi putih
+        backgroundColor: Colors.white,
         child: ListView(
           children: [
             const DrawerHeader(
@@ -79,9 +80,25 @@ class _HomePageState extends State<HomePage> {
               leading: Icon(Icons.home),
               title: Text('Home'),
             ),
-            const ListTile(
-              leading: Icon(Icons.category),
-              title: Text('Categories'),
+            ListTile(
+              leading: const Icon(Icons.category),
+              title: const Text('Manage Screen'),
+              onTap: () {
+                // Navigate to ManageScreen with the collection 'laptop'
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ManageScreen(
+                      collection: 'laptop', // The collection name is 'laptop'
+                      title:
+                          'Manage Laptop Data', // You can update this to any title you prefer
+                      onLaptopImported: (List<List<dynamic>> data) {
+                        // Implement the callback for handling imported data
+                      },
+                    ),
+                  ),
+                );
+              },
             ),
             const ListTile(
               leading: Icon(Icons.info),
@@ -103,7 +120,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search bar
             TextField(
               onChanged: (value) {
                 setState(() {
@@ -122,7 +138,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 16),
-            // Brand section
             const Text(
               'BRAND',
               style: TextStyle(
@@ -132,16 +147,15 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 8),
             SizedBox(
-              height: 80, // Tinggi slider
+              height: 80,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    // Show All button moved to the left
                     TextButton(
                       onPressed: () {
                         setState(() {
-                          selectedBrand = ""; // Reset filter
+                          selectedBrand = "";
                         });
                       },
                       child: const Text(
@@ -167,39 +181,11 @@ class _HomePageState extends State<HomePage> {
                         });
                       },
                     ),
-                    BrandItem(
-                      imagePath: 'assets/logo_hp.png',
-                      label: 'HP',
-                      onTap: () {
-                        setState(() {
-                          selectedBrand = 'HP';
-                        });
-                      },
-                    ),
-                    BrandItem(
-                      imagePath: 'assets/logo_acer.png',
-                      label: 'Acer',
-                      onTap: () {
-                        setState(() {
-                          selectedBrand = 'Acer';
-                        });
-                      },
-                    ),
-                    BrandItem(
-                      imagePath: 'assets/logo_apple.png',
-                      label: 'Apple',
-                      onTap: () {
-                        setState(() {
-                          selectedBrand = 'Apple';
-                        });
-                      },
-                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            // Laptop grid section
             const Text(
               'Our Laptop',
               style: TextStyle(
