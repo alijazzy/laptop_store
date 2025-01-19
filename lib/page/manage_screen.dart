@@ -209,8 +209,6 @@ class _ManageScreenState extends State<ManageScreen> {
       MaterialPageRoute(
         builder: (context) =>
             FormEditScreen(documentId: docId, initialData: data),
-        builder: (context) =>
-            FormEditScreen(documentId: docId, initialData: data),
       ),
     );
   }
