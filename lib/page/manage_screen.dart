@@ -5,52 +5,89 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:laptop_store/page/form_add.dart';
 import 'package:laptop_store/page/form_edit.dart';
 import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class ManageScreen extends StatefulWidget {
   final String collection;
   final String title;
-  final Function(List<List<dynamic>>) onLaptopImported;
+  final Function(List<List<dynamic>>) onlaptopImported;
 
   const ManageScreen({
     super.key,
     required this.collection,
     required this.title,
-    required this.onLaptopImported,
+    required this.onlaptopImported,
   });
+
   Future<void> importData(BuildContext context) async {
     try {
+      // Memilih file CSV
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
       );
-      if (result != null) {
+
+      // Jika file dipilih dan tidak kosong
+      if (result != null && result.files.isNotEmpty) {
         final fileBytes = result.files.single.bytes;
+
+        // Membaca byte file CSV jika tersedia
         if (fileBytes != null) {
+          // Mengonversi byte ke format CSV
           final csvData = CsvToListConverter()
               .convert(String.fromCharCodes(fileBytes), eol: '\n');
 
-          // Kirim data ke callback untuk diperbarui di tampilan lain
-          onLaptopImported(csvData.skip(1).toList());
+          // Kirim data ke callback untuk diperbarui di tampilan lain (optional)
+          onlaptopImported(csvData.skip(1).toList());
 
-          // Simpan data ke Firestore
+          // Menambahkan data ke Firestore
           for (var row in csvData.skip(1)) {
-            if (row.length >= 7) {
-              await FirebaseFirestore.instance.collection(collection).add({
-                'Brand': row[0],
-                'Deskripsi': row[1],
-                'Foto_Laptop': row[2],
-                'Harga': int.tryParse(row[3].toString()) ?? 0,
-                'Nama_Laptop': row[4],
-                'Stok': int.tryParse(row[5].toString()) ?? 0,
-              });
+            if (row.length >= 6) {
+              try {
+                // Memastikan nilai yang dikirim valid
+                final brand = row[0]?.toString() ?? '';
+                final deskripsi = row[1]?.toString() ?? '';
+                final fotoLaptop = row[2]?.toString() ?? '';
+                final harga = int.tryParse(row[3].toString()) ?? 0;
+                final namaLaptop = row[4]?.toString() ?? '';
+                final stok = int.tryParse(row[5].toString()) ?? 0;
+
+                // Memastikan semua data yang diperlukan ada
+                if (brand.isNotEmpty &&
+                    deskripsi.isNotEmpty &&
+                    namaLaptop.isNotEmpty) {
+                  await FirebaseFirestore.instance.collection('laptop').add({
+                    'Brand': brand,
+                    'Deskripsi': deskripsi,
+                    'Foto_Laptop': fotoLaptop,
+                    'Harga': harga,
+                    'Nama_Laptop': namaLaptop,
+                    'Stok': stok,
+                  });
+
+                  print("Document added successfully.");
+                } else {
+                  print("Skipping row due to missing required data.");
+                }
+              } catch (e) {
+                print("Error adding document to Firestore: $e");
+              }
             }
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('CSV file successfully imported!')),
           );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to read file bytes!')),
+          );
         }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No file selected!')),
+        );
       }
     } catch (e) {
       print("Error importing data: $e");
@@ -63,75 +100,71 @@ class ManageScreen extends StatefulWidget {
   Future<void> exportDataToPDF() async {
     try {
       final pdf = pw.Document();
-
-      // Mendapatkan data dari Firestore
       final data = await FirebaseFirestore.instance.collection('laptop').get();
 
-      // Menambahkan halaman ke PDF
       pdf.addPage(
-        pw.Page(
+        pw.MultiPage(
           build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('$title Report', style: pw.TextStyle(fontSize: 24)),
-                pw.SizedBox(height: 16),
-                pw.Table(
-                  border: pw.TableBorder.all(),
-                  children: [
-                    // Header Row
-                    pw.TableRow(
-                      children: [
-                        pw.Text('ID',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Brand',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Deskripsi',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Foto_Laptop',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Harga',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Nama_Laptop',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                        pw.Text('Stok',
-                            style:
-                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      ],
-                    ),
-                    // Data Rows (Generated from Firestore data)
-                    ...data.docs.map((doc) {
-                      final d = doc.data() as Map<String, dynamic>? ?? {};
-                      return pw.TableRow(
-                        children: [
-                          pw.Text(doc.id),
-                          pw.Text(d['Brand'] ?? '-'),
-                          pw.Text(d['Deskripsi'] ?? '-'),
-                          pw.Text(d['Foto_Laptop'] ?? '-'),
-                          pw.Text(d['Harga']?.toString() ?? '0'),
-                          pw.Text(d['Nama_Laptop'] ?? '-'),
-                          pw.Text(d['Stok']?.toString() ?? '0'),
-                        ],
-                      );
-                    }).toList(),
-                  ],
+            return [
+              // Header laporan
+              pw.Text(
+                'Laptop Report',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
                 ),
-              ],
-            );
+              ),
+              pw.SizedBox(height: 16), // Spasi antar elemen
+              // Daftar data laptop
+              ...data.docs.map((doc) {
+                final d = doc.data();
+                return pw.Padding(
+                  padding: const pw.EdgeInsets.only(bottom: 12),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'ID: ${doc.id}',
+                        style: pw.TextStyle(
+                            fontSize: 14, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        'Brand: ${d['Brand'] ?? '-'}',
+                        style: pw.TextStyle(fontSize: 14),
+                      ),
+                      pw.Text(
+                        'Deskripsi: ${d['Deskripsi'] ?? '-'}',
+                        style: pw.TextStyle(fontSize: 14),
+                      ),
+                      pw.Text(
+                        'Foto Laptop: ${d['Foto_Laptop'] ?? '-'}',
+                        style: pw.TextStyle(fontSize: 14),
+                      ),
+                      pw.Text(
+                        'Harga: ${d['Harga']?.toString() ?? '0'}',
+                        style: pw.TextStyle(fontSize: 14),
+                      ),
+                      pw.Text(
+                        'Nama Laptop: ${d['Nama_Laptop'] ?? '-'}',
+                        style: pw.TextStyle(fontSize: 14),
+                      ),
+                      pw.Text(
+                        'Stok: ${d['Stok']?.toString() ?? '0'}',
+                        style: pw.TextStyle(fontSize: 14),
+                      ),
+                      pw.Divider(), // Garis pemisah antar data
+                    ],
+                  ),
+                );
+              }).toList(),
+            ];
           },
         ),
       );
 
-      // Membagikan PDF melalui Printing
       await Printing.sharePdf(
         bytes: await pdf.save(),
-        filename: '$collection-report.pdf',
+        filename: 'laptop-report.pdf',
       );
     } catch (e) {
       print("Error exporting PDF: $e");
