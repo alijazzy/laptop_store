@@ -332,7 +332,9 @@ class _ManageScreenState extends State<ManageScreen> {
                           return DataRow(
                             cells: [
                               DataCell(Text(d['Brand'] ?? '')),
-                              DataCell(Text(d['Deskripsi'] ?? '')),
+                              DataCell(Text(
+                                _truncateDescription(d['Deskripsi'] ?? '', 5),
+                              )),
                               DataCell(Text(d['Foto_Laptop'] ?? '')),
                               DataCell(Text(d['Harga']?.toString() ?? '0')),
                               DataCell(Text(d['Nama_Laptop'] ?? '')),
@@ -369,6 +371,15 @@ class _ManageScreenState extends State<ManageScreen> {
       ),
     );
   }
+}
+
+String _truncateDescription(String text, int maxWords) {
+  final words = text.split(' '); // Pisahkan teks berdasarkan spasi (kata)
+  if (words.length <= maxWords) {
+    return text; // Jika jumlah kata lebih sedikit dari batas, kembalikan teks asli
+  }
+  return words.take(maxWords).join(' ') +
+      ' dst....'; // Gabungkan 5 kata pertama dengan "dst."
 }
 
 class EditScreen extends StatelessWidget {

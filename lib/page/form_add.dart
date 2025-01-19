@@ -9,7 +9,7 @@ class FormAddScreen extends StatefulWidget {
 }
 
 class _FormAddScreenState extends State<FormAddScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>(); // Kunci untuk form
   final TextEditingController _brandController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _laptopNameController = TextEditingController();
@@ -17,10 +17,11 @@ class _FormAddScreenState extends State<FormAddScreen> {
   final TextEditingController _stockController = TextEditingController();
   final TextEditingController _imageController = TextEditingController();
 
-  // Function to add data to Firestore
+  // Fungsi untuk menambahkan data ke Firestore
   Future<void> addDataToFirestore() async {
     if (_formKey.currentState?.validate() ?? false) {
       try {
+        // Menambahkan data ke koleksi 'laptop' di Firestore
         await FirebaseFirestore.instance.collection('laptop').add({
           'Brand': _brandController.text,
           'Deskripsi': _descriptionController.text,
@@ -30,11 +31,12 @@ class _FormAddScreenState extends State<FormAddScreen> {
           'Stok': int.tryParse(_stockController.text) ?? 0,
         });
 
+        // Menampilkan snackbar untuk sukses
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data successfully added!')),
+          const SnackBar(content: Text('Data berhasil ditambahkan!')),
         );
 
-        // Clear the form after submission
+        // Membersihkan form setelah data berhasil dikirim
         _brandController.clear();
         _descriptionController.clear();
         _laptopNameController.clear();
@@ -43,8 +45,9 @@ class _FormAddScreenState extends State<FormAddScreen> {
         _imageController.clear();
       } catch (e) {
         print("Error adding data: $e");
+        // Menampilkan snackbar jika gagal menambahkan data
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add data!')),
+          const SnackBar(content: Text('Gagal menambahkan data!')),
         );
       }
     }
@@ -54,53 +57,88 @@ class _FormAddScreenState extends State<FormAddScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Record'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
+        ),
+        flexibleSpace: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'assets/Logo/background.jpg', // Gambar latar belakang
+              fit: BoxFit.cover,
+            ),
+            Container(
+              color:
+                  Colors.black.withOpacity(0.4), // Transparansi di atas gambar
+            ),
+          ],
+        ),
+        title: const Text(
+          'Form Add',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Form(
-            key: _formKey,
+            key: _formKey, // Menyambungkan form dengan _formKey
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Brand Field
+                // Field Brand
                 _buildTextField(
-                    _brandController, 'Brand', 'Please enter brand'),
+                    _brandController, 'Brand', 'Mohon masukkan brand'),
 
-                // Description Field
-                _buildTextField(_descriptionController, 'Description',
-                    'Please enter description'),
+                // Field Deskripsi
+                _buildTextField(_descriptionController, 'Deskripsi',
+                    'Mohon masukkan deskripsi'),
 
-                // Laptop Name Field
-                _buildTextField(_laptopNameController, 'Laptop Name',
-                    'Please enter laptop name'),
+                // Field Nama Laptop
+                _buildTextField(_laptopNameController, 'Nama Laptop',
+                    'Mohon masukkan nama laptop'),
 
-                // Price Field
-                _buildTextField(_priceController, 'Price', 'Please enter price',
+                // Field Harga
+                _buildTextField(
+                    _priceController, 'Harga', 'Mohon masukkan harga',
                     keyboardType: TextInputType.number),
 
-                // Stock Field
-                _buildTextField(_stockController, 'Stock', 'Please enter stock',
+                // Field Stok
+                _buildTextField(_stockController, 'Stok', 'Mohon masukkan stok',
                     keyboardType: TextInputType.number),
 
-                // Image URL Field
-                _buildTextField(
-                    _imageController, 'Image URL', 'Please enter image URL'),
+                // Field URL Gambar
+                _buildTextField(_imageController, 'URL Gambar',
+                    'Mohon masukkan URL gambar'),
 
                 const SizedBox(height: 20),
 
-                // Submit Button
+                // Tombol Submit
                 Center(
                   child: ElevatedButton(
                     onPressed: () async {
-                      // Add data to Firestore
+                      // Menambahkan data ke Firestore
                       await addDataToFirestore();
 
-                      // Navigate back to the ManageScreen after adding the data
+                      // Kembali ke halaman sebelumnya setelah data berhasil ditambahkan
                       Navigator.pop(context);
                     },
-                    child: const Text('Add Record'),
+                    child: const Text('Tambah Data'),
+                    style: ElevatedButton.styleFrom(
+                      // Penataan tombol
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12.0, horizontal: 24.0),
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ],
@@ -111,6 +149,7 @@ class _FormAddScreenState extends State<FormAddScreen> {
     );
   }
 
+  // Fungsi untuk membuat text field dengan validasi
   Widget _buildTextField(
       TextEditingController controller, String label, String errorMessage,
       {TextInputType keyboardType = TextInputType.text}) {
@@ -124,11 +163,13 @@ class _FormAddScreenState extends State<FormAddScreen> {
           decoration: InputDecoration(
             labelText: label,
             border: const OutlineInputBorder(),
+            prefixIcon: const Icon(
+                Icons.text_fields), // Menambahkan ikon ke setiap field
           ),
           keyboardType: keyboardType,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return errorMessage;
+              return errorMessage; // Pesan error jika field kosong
             }
             return null;
           },

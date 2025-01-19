@@ -22,7 +22,6 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       endDrawer: Drawer(
         backgroundColor: Colors.white,
-        backgroundColor: Colors.white,
         child: ListView(
           children: [
             DrawerHeader(
