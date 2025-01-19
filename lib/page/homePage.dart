@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage> {
                     builder: (context) => ManageScreen(
                       collection: 'laptop',
                       title: 'Manage Laptop Data',
-                      onLaptopImported: (List<List<dynamic>> data) {},
+                      onlaptopImported: (List<List<dynamic>> data) {},
                     ),
                   ),
                 );

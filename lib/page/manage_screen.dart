@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:laptop_store/page/homePage.dart';
 import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:intl/intl.dart';
@@ -15,13 +16,13 @@ import 'package:laptop_store/page/form_edit.dart';
 class ManageScreen extends StatefulWidget {
   final String collection;
   final String title;
-  final Function(List<List<dynamic>>) onLaptopImported;
+  final Function(List<List<dynamic>>) onlaptopImported;
 
   const ManageScreen({
     super.key,
     required this.collection,
     required this.title,
-    required this.onLaptopImported,
+    required this.onlaptopImported,
   });
 
   @override
@@ -35,6 +36,7 @@ class _ManageScreenState extends State<ManageScreen> {
   Future<void> importData(BuildContext context) async {
     print("Import Data function called"); // Tambahkan ini
     try {
+      // Memilih file CSV
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
@@ -43,6 +45,8 @@ class _ManageScreenState extends State<ManageScreen> {
       if (result != null) {
         print("File picked: ${result.files.single.name}"); // Tambahkan ini
         final fileBytes = result.files.single.bytes;
+
+        // Membaca byte file CSV jika tersedia
         if (fileBytes != null) {
           final csvData = CsvToListConverter().convert(
             String.fromCharCodes(fileBytes),
@@ -52,7 +56,7 @@ class _ManageScreenState extends State<ManageScreen> {
           print("CSV Data: $csvData"); // Tambahkan ini untuk melihat data CSV
 
           // Kirim data ke callback untuk diperbarui di tampilan lain
-          widget.onLaptopImported(csvData.skip(1).toList());
+          widget.onlaptopImported(csvData.skip(1).toList());
 
           for (var row in csvData.skip(1)) {
             if (row.length >= 6) {
@@ -75,6 +79,10 @@ class _ManageScreenState extends State<ManageScreen> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('CSV file successfully imported!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to read file bytes!')),
           );
         }
       } else {
@@ -199,6 +207,8 @@ class _ManageScreenState extends State<ManageScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
+        builder: (context) =>
+            FormEditScreen(documentId: docId, initialData: data),
         builder: (context) =>
             FormEditScreen(documentId: docId, initialData: data),
       ),
@@ -330,7 +340,7 @@ class _ManageScreenState extends State<ManageScreen> {
                     builder: (context) => ManageScreen(
                       collection: 'laptop',
                       title: 'Manage Laptop Data',
-                      onLaptopImported: (List<List<dynamic>> data) {},
+                      onlaptopImported: (List<List<dynamic>> data) {},
                     ),
                   ),
                 );
