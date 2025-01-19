@@ -12,7 +12,7 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  String? _selectedPaymentMethod; // Tidak ada nilai default
+  String? _selectedPaymentMethod;
   final List<String> _paymentMethods = ['Cash', 'Card', 'E-Wallet'];
   String? _errorMessage;
 
@@ -23,34 +23,119 @@ class _CartPageState extends State<CartPage> {
 
   Future<void> _saveTransactionToFirestore(
       List<CartItem> items, int total) async {
-    final List<Map<String, dynamic>> barang = items.map((item) {
-      return {
-        "ID_Laptop": item.id, // Belum ada ID
-        "Nama_Laptop": item.name,
-        "Brand": item.brand, // Pastikan `brand` tersedia di model
-        "Quantity": item.quantity,
-      };
-    }).toList();
-
-    final String tanggalTransaksi =
-        DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-    final data = {
-      "Barang": barang,
-      "tanggal_transaksi": tanggalTransaksi,
-      "Total": total,
-    };
+    // Create a new batch
+    final batch = FirebaseFirestore.instance.batch();
+    final laptopCollection = FirebaseFirestore.instance.collection('laptop');
 
     try {
-      await FirebaseFirestore.instance.collection('transaksi').add(data);
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction saved successfully!')),
+      // First, check if we have enough stock for all items
+      for (var item in items) {
+        final laptopDoc = await laptopCollection.doc(item.id).get();
+        if (!laptopDoc.exists) {
+          throw 'Laptop dengan ID ${item.id} tidak ditemukan';
+        }
+
+        final currentStock = laptopDoc.data()?['Stok'] ?? 0;
+        if (currentStock < item.quantity) {
+          throw 'Stok tidak mencukupi untuk ${item.name}. Tersisa: $currentStock';
+        }
+      }
+
+      // Prepare transaction data
+      final List<Map<String, dynamic>> barang = items.map((item) {
+        return {
+          "ID_Laptop": item.id,
+          "Nama_Laptop": item.name,
+          "Brand": item.brand,
+          "Quantity": item.quantity,
+        };
+      }).toList();
+
+      final String tanggalTransaksi =
+          DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      // Add transaction to batch
+      final transactionRef =
+          FirebaseFirestore.instance.collection('transaksi').doc();
+      batch.set(transactionRef, {
+        "Barang": barang,
+        "tanggal_transaksi": tanggalTransaksi,
+        "Total": total,
+        "payment_method": _selectedPaymentMethod,
+      });
+
+      // Update stock for each item
+      for (var item in items) {
+        final laptopRef = laptopCollection.doc(item.id);
+        batch.update(laptopRef, {'Stok': FieldValue.increment(-item.quantity)});
+      }
+
+      // Commit the batch
+      await batch.commit();
+
+      // Clear the cart
+      Provider.of<CartService>(context, listen: false).clear();
+
+      // Reset payment method and error message
+      setState(() {
+        _selectedPaymentMethod = null;
+        _errorMessage = null;
+      });
+
+      // Show success dialog
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Transaksi Berhasil'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.green,
+                  size: 64,
+                ),
+                const SizedBox(height: 16),
+                const Text('Terima kasih telah berbelanja!'),
+                Text('Total Pembayaran: ${formatRupiah(total)}'),
+                Text('Metode Pembayaran: $_selectedPaymentMethod'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close dialog
+                  Navigator.of(context).pop(); // Return to previous screen
+                },
+              ),
+            ],
+          );
+        },
       );
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save transaction: $error')),
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: Text(error.toString()),
+            actions: [
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
       );
+      print(error);
     }
   }
 
@@ -139,7 +224,6 @@ class _CartPageState extends State<CartPage> {
                   },
                 ),
               ),
-              // Order Summary
               Container(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 padding: const EdgeInsets.all(16),
@@ -179,7 +263,6 @@ class _CartPageState extends State<CartPage> {
                   ],
                 ),
               ),
-              // Payment Method Dropdown
               Container(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 padding: const EdgeInsets.all(16),
@@ -219,7 +302,7 @@ class _CartPageState extends State<CartPage> {
                           onChanged: (String? newValue) {
                             setState(() {
                               _selectedPaymentMethod = newValue;
-                              _errorMessage = null; // Clear error
+                              _errorMessage = null;
                             });
                           },
                         ),
@@ -233,7 +316,6 @@ class _CartPageState extends State<CartPage> {
                   ],
                 ),
               ),
-              // Checkout Button
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

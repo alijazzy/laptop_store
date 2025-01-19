@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:laptop_store/page/addProduct.dart';
+import 'package:laptop_store/page/product_detail.dart';
 import 'shoppingCartPage.dart';
 import 'package:provider/provider.dart';
 import 'shoppingCartService.dart';
-import 'manage_screen.dart'; // Import halaman Manage Screen
+import 'manage_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,14 +24,14 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       endDrawer: Drawer(
         backgroundColor: Colors.white,
-        backgroundColor: Colors.white,
-        child: ListView(
+        child: Column(
           children: [
-            DrawerHeader(
+            Container(
+              height: 200,
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('assets/Logo/background.jpg'),
-                  fit: BoxFit.cover, // Atur sesuai kebutuhan
+                  fit: BoxFit.cover,
                 ),
               ),
               child: Center(
@@ -39,9 +41,13 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            const ListTile(
+            ListTile(
               leading: Icon(Icons.home),
               title: Text('Home'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const HomePage()));
+              },
             ),
             ListTile(
               leading: Icon(Icons.shopping_cart),
@@ -55,25 +61,25 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.category),
               title: const Text('Manage Screen'),
               onTap: () {
-                // Navigate to ManageScreen with the collection 'laptop'
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ManageScreen(
-                      collection: 'laptop', // The collection name is 'laptop'
-                      title:
-                          'Manage Laptop Data', // You can update this to any title you prefer
-                      onLaptopImported: (List<List<dynamic>> data) {
-                        // Implement the callback for handling imported data
-                      },
+                      collection: 'laptop',
+                      title: 'Manage Laptop Data',
+                      onLaptopImported: (List<List<dynamic>> data) {},
                     ),
                   ),
                 );
               },
             ),
-            const ListTile(
-              leading: Icon(Icons.info),
-              title: Text('About'),
+            ListTile(
+              leading: Icon(Icons.add),
+              title: Text('Add Data Laptop'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => AddLaptopPage()));
+              },
             ),
             const Divider(),
             ListTile(
@@ -120,8 +126,7 @@ class _HomePageState extends State<HomePage> {
             ),
             actions: [
               Stack(
-                alignment: Alignment
-                    .center, // Tambahkan ini untuk memastikan alignment konsisten
+                alignment: Alignment.center,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.shopping_cart),
@@ -160,10 +165,7 @@ class _HomePageState extends State<HomePage> {
                                 textAlign: TextAlign.center,
                               ),
                             )
-                          : const SizedBox(
-                              width: 16,
-                              height:
-                                  16), // Gunakan SizedBox alih-alih Container kosong
+                          : const SizedBox(width: 16, height: 16),
                     ),
                   ),
                 ],
@@ -339,106 +341,143 @@ class _HomePageState extends State<HomePage> {
                     (context, index) {
                       final data =
                           laptops[index].data() as Map<String, dynamic>;
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(10),
-                                ),
-                                child: Image.asset(
-                                  'assets/${data['Foto_Laptop']}',
-                                  fit: BoxFit.contain,
-                                  width: double.infinity,
-                                ),
+                      return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProductDetail(idLaptop: laptops[index].id),
                               ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                data['Nama_Laptop'],
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text(
-                                formatRupiah(data['Harga']),
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Provider.of<CartService>(context,
-                                            listen: false)
-                                        .addItem(
-                                      laptops[index].id,
-                                      data['Nama_Laptop'],
-                                      data['Brand'],
-                                      data['Harga'],
-                                      data['Foto_Laptop'],
-                                    );
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text('Added to cart'),
-                                        duration: const Duration(seconds: 1),
-                                        action: SnackBarAction(
-                                          label: 'VIEW CART',
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const CartPage()),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Colors.black, // Background color
-                                    padding: const EdgeInsets.only(
-                                        left: 25, right: 25),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: const [
-                                      Icon(Icons.shopping_cart,
-                                          color: Colors.white),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Add to Cart',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(10),
+                                    ),
+                                    child: data['Foto_Laptop'] == '-' ||
+                                            data['Foto_Laptop'] == null
+                                        ? Container(
+                                            color: Colors.grey[300],
+                                            child: const Icon(
+                                              Icons.image_not_supported,
+                                              size: 50,
+                                              color: Colors.black,
+                                            ),
+                                            alignment: Alignment.center,
+                                          )
+                                        : Image.asset(
+                                            'assets/${data['Foto_Laptop']}',
+                                            fit: BoxFit.contain,
+                                            width: double.infinity,
+                                            errorBuilder: (BuildContext context,
+                                                Object error,
+                                                StackTrace? stackTrace) {
+                                              return Container(
+                                                color: Colors.grey[300],
+                                                child: const Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 50,
+                                                  color: Colors.black,
+                                                ),
+                                                alignment: Alignment.center,
+                                              );
+                                            },
+                                          ),
                                   ),
                                 ),
-                              ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    data['Nama_Laptop'],
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0),
+                                  child: Text(
+                                    formatRupiah(data['Harga']),
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        Provider.of<CartService>(context,
+                                                listen: false)
+                                            .addItem(
+                                          laptops[index].id,
+                                          data['Nama_Laptop'],
+                                          data['Brand'],
+                                          data['Harga'],
+                                          data['Foto_Laptop'],
+                                        );
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content:
+                                                const Text('Added to cart'),
+                                            duration:
+                                                const Duration(seconds: 1),
+                                            action: SnackBarAction(
+                                              label: 'VIEW CART',
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          const CartPage()),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.black,
+                                        padding: const EdgeInsets.only(
+                                            left: 25, right: 25),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: const [
+                                          Icon(Icons.shopping_cart,
+                                              color: Colors.white),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Add to Cart',
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      );
+                          ));
                     },
                     childCount: laptops.length,
                   ),

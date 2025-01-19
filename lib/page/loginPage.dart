@@ -14,9 +14,9 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailTextController = TextEditingController();
   final _passwordTextController = TextEditingController();
-  bool _obscurePassword = true; // State untuk mengontrol visibilitas password
+  bool _obscurePassword = true;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? _errorMessage; // Variabel untuk menyimpan pesan error
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -32,15 +32,14 @@ class _LoginPageState extends State<LoginPage> {
           email: _emailTextController.text.trim(),
           password: _passwordTextController.text.trim(),
         );
-        // Jika login berhasil, navigasi ke halaman beranda
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
         );
       } catch (e) {
         setState(() {
-          _errorMessage =
-              'Data pengguna tidak ada atau salah'; // Pesan kesalahan
+          _errorMessage = 'Data pengguna tidak ada atau salah';
         });
       }
     }
@@ -50,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
     if (value == null || value.isEmpty) {
       return 'Email cannot be empty';
     }
-    // Regex untuk memvalidasi format email
+
     String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
     RegExp regex = RegExp(pattern);
     if (!regex.hasMatch(value)) {
@@ -73,7 +72,6 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
@@ -133,7 +131,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      // Email Field
                       TextFormField(
                         controller: _emailTextController,
                         decoration: InputDecoration(
@@ -149,7 +146,6 @@ class _LoginPageState extends State<LoginPage> {
                         validator: _validateEmail,
                       ),
                       const SizedBox(height: 20.0),
-                      // Password Field
                       TextFormField(
                         controller: _passwordTextController,
                         obscureText: _obscurePassword,
@@ -179,7 +175,6 @@ class _LoginPageState extends State<LoginPage> {
                         validator: _validatePassword,
                       ),
                       const SizedBox(height: 20.0),
-                      // Display error message
                       if (_errorMessage != null) ...[
                         Text(
                           _errorMessage!,
@@ -188,7 +183,6 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 10.0),
                       ],
                       const SizedBox(height: 30.0),
-                      // Login Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -211,7 +205,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      // Navigasi ke halaman pendaftaran
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

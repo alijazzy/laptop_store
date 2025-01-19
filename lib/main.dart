@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:laptop_store/page/loginPage.dart';
-import 'package:laptop_store/page/manage_screen.dart';
 import 'package:laptop_store/page/splashScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
+import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:laptop_store/page/shoppingCartService.dart';
 
 void main() async {
@@ -13,9 +14,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(
-    ChangeNotifierProvider(
-      create: (ctx) => CartService(),
-      child: const MyApp(),
+    DevicePreview(
+      enabled: !kReleaseMode,
+      builder: (context) => ChangeNotifierProvider(
+        create: (ctx) => CartService(),
+        child: const MyApp(),
+      ),
     ),
   );
 }

@@ -1,10 +1,9 @@
-// cart_service.dart
 import 'package:flutter/foundation.dart';
 
 class CartItem {
   final String id;
   final String name;
-  final String brand; // Properti baru
+  final String brand;
   final int price;
   final String image;
   int quantity;
@@ -12,7 +11,7 @@ class CartItem {
   CartItem({
     required this.id,
     required this.name,
-    required this.brand, // Properti baru
+    required this.brand,
     required this.price,
     required this.image,
     this.quantity = 1,
@@ -42,7 +41,7 @@ class CartService extends ChangeNotifier {
         (existingItem) => CartItem(
           id: existingItem.id,
           name: existingItem.name,
-          brand: existingItem.brand, // Pertahankan brand
+          brand: existingItem.brand,
           price: existingItem.price,
           image: existingItem.image,
           quantity: existingItem.quantity + 1,
@@ -54,7 +53,7 @@ class CartService extends ChangeNotifier {
         () => CartItem(
           id: productId,
           name: name,
-          brand: brand, // Properti baru
+          brand: brand,
           price: price,
           image: image,
         ),
@@ -76,7 +75,7 @@ class CartService extends ChangeNotifier {
           (existingItem) => CartItem(
             id: existingItem.id,
             name: existingItem.name,
-            brand: existingItem.brand, // Pertahankan brand
+            brand: existingItem.brand,
             price: existingItem.price,
             image: existingItem.image,
             quantity: quantity,

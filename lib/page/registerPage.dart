@@ -16,14 +16,13 @@ class _RegisterPageState extends State<RegisterPage> {
   late String name;
 
   final _formKey = GlobalKey<FormState>();
-  bool _obscureText = true; // Status untuk menunjukkan password
+  bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
@@ -84,7 +83,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                         const SizedBox(height: 20.0),
-                        // Nama Field
                         TextFormField(
                           decoration: InputDecoration(
                             hintText: 'Name',
@@ -106,7 +104,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           },
                         ),
                         const SizedBox(height: 15.0),
-                        // Email Field
                         TextFormField(
                           decoration: InputDecoration(
                             hintText: 'Email',
@@ -132,7 +129,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           },
                         ),
                         const SizedBox(height: 15.0),
-                        // Password Field with Show/Hide functionality
                         TextFormField(
                           obscureText: _obscureText,
                           decoration: InputDecoration(
@@ -169,7 +165,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           },
                         ),
                         const SizedBox(height: 30.0),
-                        // Sign Up Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -194,7 +189,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                       .updateProfile(displayName: name);
                                   await newUser.reload();
                                   if (newUser != null) {
-                                    // Menampilkan snackbar berhasil
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content:
@@ -209,7 +203,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                     );
                                   }
                                 } catch (e) {
-                                  // Menampilkan snackbar gagal
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
@@ -238,7 +231,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                         const SizedBox(height: 20.0),
-                        // Back to Sign In
                         Center(
                           child: TextButton.icon(
                             onPressed: () {
