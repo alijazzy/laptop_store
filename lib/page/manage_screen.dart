@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:laptop_store/page/form_add.dart';
+import 'package:laptop_store/page/form_edit.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -62,9 +63,11 @@ class ManageScreen extends StatefulWidget {
   Future<void> exportDataToPDF() async {
     try {
       final pdf = pw.Document();
-      final data =
-          await FirebaseFirestore.instance.collection(collection).get();
 
+      // Mendapatkan data dari Firestore
+      final data = await FirebaseFirestore.instance.collection('laptop').get();
+
+      // Menambahkan halaman ke PDF
       pdf.addPage(
         pw.Page(
           build: (pw.Context context) {
@@ -73,28 +76,51 @@ class ManageScreen extends StatefulWidget {
               children: [
                 pw.Text('$title Report', style: pw.TextStyle(fontSize: 24)),
                 pw.SizedBox(height: 16),
-                pw.Table.fromTextArray(
-                  headers: [
-                    'ID',
-                    'Brand',
-                    'Deskripsi',
-                    'Foto Laptop',
-                    'Harga',
-                    'Nama Laptop',
-                    'Stok'
+                pw.Table(
+                  border: pw.TableBorder.all(),
+                  children: [
+                    // Header Row
+                    pw.TableRow(
+                      children: [
+                        pw.Text('ID',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Brand',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Deskripsi',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Foto_Laptop',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Harga',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Nama_Laptop',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Stok',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      ],
+                    ),
+                    // Data Rows (Generated from Firestore data)
+                    ...data.docs.map((doc) {
+                      final d = doc.data() as Map<String, dynamic>? ?? {};
+                      return pw.TableRow(
+                        children: [
+                          pw.Text(doc.id),
+                          pw.Text(d['Brand'] ?? '-'),
+                          pw.Text(d['Deskripsi'] ?? '-'),
+                          pw.Text(d['Foto_Laptop'] ?? '-'),
+                          pw.Text(d['Harga']?.toString() ?? '0'),
+                          pw.Text(d['Nama_Laptop'] ?? '-'),
+                          pw.Text(d['Stok']?.toString() ?? '0'),
+                        ],
+                      );
+                    }).toList(),
                   ],
-                  data: data.docs.map((doc) {
-                    final d = doc.data();
-                    return [
-                      doc.id,
-                      d['Brand'] ?? '',
-                      d['Deskripsi'] ?? '',
-                      d['Foto_Laptop'] ?? '',
-                      d['Harga']?.toString() ?? '0',
-                      d['Nama_Laptop'] ?? '',
-                      d['Stok']?.toString() ?? '',
-                    ];
-                  }).toList(),
                 ),
               ],
             );
@@ -102,6 +128,7 @@ class ManageScreen extends StatefulWidget {
         ),
       );
 
+      // Membagikan PDF melalui Printing
       await Printing.sharePdf(
         bytes: await pdf.save(),
         filename: '$collection-report.pdf',
@@ -132,7 +159,8 @@ class _ManageScreenState extends State<ManageScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EditScreen(docId: docId, data: data),
+        builder: (context) =>
+            FormEditScreen(documentId: docId, initialData: data),
       ),
     );
   }
@@ -187,7 +215,7 @@ class _ManageScreenState extends State<ManageScreen> {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'assets/background.jpg',
+              'assets/Logo/background.jpg',
               fit: BoxFit.cover,
             ),
             Container(
@@ -223,7 +251,7 @@ class _ManageScreenState extends State<ManageScreen> {
           Stack(
             children: [
               Image.asset(
-                'assets/background.jpg',
+                'assets/Logo/background.jpg',
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: 200,
@@ -380,21 +408,4 @@ String _truncateDescription(String text, int maxWords) {
   }
   return words.take(maxWords).join(' ') +
       ' dst....'; // Gabungkan 5 kata pertama dengan "dst."
-}
-
-class EditScreen extends StatelessWidget {
-  final String docId;
-  final Map<String, dynamic> data;
-
-  const EditScreen({super.key, required this.docId, required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Edit Record')),
-      body: Center(
-        child: Text('Implement Edit Functionality Here'),
-      ),
-    );
-  }
 }
