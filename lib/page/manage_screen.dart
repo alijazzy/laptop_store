@@ -33,84 +33,129 @@ class _ManageScreenState extends State<ManageScreen> {
   TextEditingController searchController = TextEditingController();
   String searchQuery = '';
 
+  // Fungsi untuk mengimpor data dari file CSV
   Future<void> importData(BuildContext context) async {
-    print("Import Data function called"); // Tambahkan ini
+    print(
+        "Import Data function called"); // Log untuk memastikan fungsi dipanggil
     try {
-      // Memilih file CSV
+      // Memilih file CSV menggunakan FilePicker
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['csv'],
+        type: FileType.custom, // Hanya file dengan tipe tertentu yang diizinkan
+        allowedExtensions: ['csv'], // Ekstensi file yang diizinkan
       );
 
       if (result != null) {
-        print("File picked: ${result.files.single.name}"); // Tambahkan ini
-        final fileBytes = result.files.single.bytes;
+        print(
+            "File picked: ${result.files.single.name}"); // Menampilkan nama file yang dipilih
+        final fileBytes =
+            result.files.single.bytes; // Membaca byte dari file yang dipilih
 
-        // Membaca byte file CSV jika tersedia
+        // Memastikan byte file berhasil dibaca
         if (fileBytes != null) {
           final csvData = CsvToListConverter().convert(
-            String.fromCharCodes(fileBytes),
-            eol: '\n',
+            String.fromCharCodes(fileBytes), // Mengonversi byte ke string
+            eol: '\n', // Menentukan akhir baris sebagai pemisah
           );
 
-          print("CSV Data: $csvData"); // Tambahkan ini untuk melihat data CSV
+          print("CSV Data: $csvData"); // Log data CSV untuk debugging
 
-          // Kirim data ke callback untuk diperbarui di tampilan lain
+          // Mengirim data CSV ke callback untuk diperbarui di tampilan lain
           widget.onlaptopImported(csvData.skip(1).toList());
 
+          // Memasukkan data CSV ke Firestore
           for (var row in csvData.skip(1)) {
+            // Melewati header (baris pertama)
             if (row.length >= 6) {
+              // Memastikan jumlah kolom mencukupi
               try {
                 await FirebaseFirestore.instance.collection('laptop').add({
                   'Brand': row[0],
                   'Deskripsi': row[1],
                   'Foto_Laptop': row[2],
-                  'Harga': int.tryParse(row[3].toString()) ?? 0,
+                  'Harga': int.tryParse(row[3].toString()) ??
+                      0, // Konversi ke integer
                   'Nama_Laptop': row[4],
-                  'Stok': int.tryParse(row[5].toString()) ?? 0,
+                  'Stok': int.tryParse(row[5].toString()) ??
+                      0, // Konversi ke integer
                 });
                 print(
-                    'Data added: ${row[0]}, ${row[4]}'); // Log setiap data yang ditambahkan
+                    'Data added: ${row[0]}, ${row[4]}'); // Log data yang berhasil ditambahkan
               } catch (e) {
-                print('Error adding data: $e'); // Log kesalahan jika ada
+                print('Error adding data: $e'); // Log jika terjadi kesalahan
               }
             }
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('CSV file successfully imported!')),
+          // Menampilkan dialog sukses impor
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Import Successful'),
+              content: const Text('CSV file successfully imported!'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to read file bytes!')),
+          // Menampilkan dialog jika byte file gagal dibaca
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Import Failed'),
+              content: const Text('Failed to read file bytes!'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
           );
         }
       } else {
-        print("No file selected"); // Tambahkan ini untuk situasi tanpa file
+        print("No file selected"); // Log jika pengguna tidak memilih file
       }
     } catch (e) {
-      print("Error importing data: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to import CSV file.')),
+      print("Error importing data: $e"); // Log jika terjadi kesalahan
+      // Menampilkan dialog jika terjadi kesalahan saat impor
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Failed to import CSV file.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
     }
   }
 
+// Fungsi untuk mengekspor data ke format PDF
   Future<void> exportDataToPDF() async {
     try {
-      final pdf = pw.Document();
+      final pdf = pw.Document(); // Membuat dokumen PDF baru
       final data =
           await FirebaseFirestore.instance.collection(widget.collection).get();
 
-      // Add custom font
+      // Menambahkan font kustom
       final font = await PdfGoogleFonts.nunitoRegular();
       final boldFont = await PdfGoogleFonts.nunitoBold();
 
+      // Menambahkan halaman ke PDF
       pdf.addPage(
         pw.MultiPage(
-          pageFormat: PdfPageFormat.a4.landscape,
+          pageFormat: PdfPageFormat.a4.landscape, // Format halaman horizontal
           build: (pw.Context context) {
             return [
+              // Header laporan
               pw.Header(
                 level: 0,
                 child: pw.Text(
@@ -121,59 +166,69 @@ class _ManageScreenState extends State<ManageScreen> {
                   ),
                 ),
               ),
-              pw.SizedBox(height: 20),
-              pw.Table.fromTextArray(
-                context: context,
-                border: const pw.TableBorder(
-                  horizontalInside:
-                      pw.BorderSide(width: 1, color: PdfColors.grey300),
-                  verticalInside:
-                      pw.BorderSide(width: 1, color: PdfColors.grey300),
-                ),
-                headerStyle: pw.TextStyle(
-                  font: boldFont,
-                  fontSize: 12,
-                  color: PdfColors.white,
-                ),
-                headerDecoration: const pw.BoxDecoration(
-                  color: PdfColors.black,
-                ),
-                cellStyle: pw.TextStyle(
-                  font: font,
-                  fontSize: 10,
-                ),
-                cellHeight: 30,
-                cellAlignments: {
-                  0: pw.Alignment.centerLeft,
-                  1: pw.Alignment.centerLeft,
-                  2: pw.Alignment.centerLeft,
-                  3: pw.Alignment.centerRight,
-                  4: pw.Alignment.centerLeft,
-                  5: pw.Alignment.center,
-                },
-                headers: [
-                  'Brand',
-                  'Deskripsi',
-                  'Foto Laptop',
-                  'Harga',
-                  'Nama Laptop',
-                  'Stok'
-                ],
-                data: data.docs.map((doc) {
-                  final d = doc.data();
+              pw.SizedBox(height: 20), // Spasi kosong
+              // Daftar data laptop
+              pw.Column(
+                children: data.docs.map((doc) {
+                  final d = doc.data(); // Mengambil data dari dokumen
                   final deskripsi = d['Deskripsi'] ?? '';
                   final truncatedDeskripsi = deskripsi.length > 100
-                      ? '${deskripsi.substring(0, 100)}...'
+                      ? '${deskripsi.substring(0, 100)}...' // Memotong deskripsi panjang
                       : deskripsi;
 
-                  return [
-                    d['Brand'] ?? '',
-                    truncatedDeskripsi,
-                    d['Foto_Laptop'] ?? '',
-                    d['Harga'] ?? 0,
-                    d['Nama_Laptop'] ?? '',
-                    (d['Stok'] ?? 0).toString(),
-                  ];
+                  return pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 20),
+                    padding: const pw.EdgeInsets.all(10),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: PdfColors.grey300, width: 1),
+                      borderRadius: pw.BorderRadius.circular(5),
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        // Menampilkan informasi laptop
+                        pw.Text(
+                          'Brand: ${d['Brand'] ?? ''}',
+                          style: pw.TextStyle(
+                            font: boldFont,
+                            fontSize: 12,
+                          ),
+                        ),
+                        pw.SizedBox(height: 5),
+                        pw.Text(
+                          'Deskripsi: ${truncatedDeskripsi}',
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 10,
+                          ),
+                        ),
+                        pw.SizedBox(height: 5),
+                        pw.Text(
+                          'Nama Laptop: ${d['Nama_Laptop'] ?? ''}',
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 10,
+                          ),
+                        ),
+                        pw.SizedBox(height: 5),
+                        pw.Text(
+                          'Harga: Rp. ${d['Harga'] ?? 0}',
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 10,
+                          ),
+                        ),
+                        pw.SizedBox(height: 5),
+                        pw.Text(
+                          'Stok: ${(d['Stok'] ?? 0).toString()}',
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 }).toList(),
               ),
             ];
@@ -181,13 +236,14 @@ class _ManageScreenState extends State<ManageScreen> {
         ),
       );
 
+      // Membagikan PDF melalui aplikasi lain
       await Printing.sharePdf(
-        bytes: await pdf.save(),
+        bytes: await pdf.save(), // Menyimpan dokumen PDF
         filename:
-            '${widget.collection}-report-${DateTime.now().toString()}.pdf',
+            '${widget.collection}-report-${DateTime.now().toString()}.pdf', // Nama file PDF
       );
     } catch (e) {
-      print("Error exporting PDF: $e");
+      print("Error exporting PDF: $e"); // Log jika terjadi kesalahan ekspor
     }
   }
 
@@ -241,8 +297,20 @@ class _ManageScreenState extends State<ManageScreen> {
           .collection(widget.collection)
           .doc(docId)
           .delete();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Record deleted successfully')),
+
+      // Menampilkan dialog untuk notifikasi
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Successful'),
+          content: const Text('Record deleted successfully.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
     }
   }
