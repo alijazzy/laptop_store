@@ -12,8 +12,7 @@ class ProductDetail extends StatefulWidget {
 }
 
 class _ProductDetailState extends State<ProductDetail> {
-  bool _showFullDescription =
-      false; // Menyimpan status apakah deskripsi ditampilkan penuh
+  bool _showFullDescription = false;
 
   Future<Map<String, dynamic>?> fetchProductData() async {
     final docRef =
@@ -188,13 +187,11 @@ class _ProductDetailState extends State<ProductDetail> {
                             const TextStyle(color: Colors.black, fontSize: 14),
                       ),
                       const SizedBox(height: 8),
-                      if (productData['Deskripsi'].length >
-                          100) // Tampilkan tombol hanya jika deskripsi lebih dari 100 karakter
+                      if (productData['Deskripsi'].length > 100)
                         TextButton(
                           onPressed: () {
                             setState(() {
-                              _showFullDescription =
-                                  !_showFullDescription; // Toggle deskripsi
+                              _showFullDescription = !_showFullDescription;
                             });
                           },
                           child: Text(

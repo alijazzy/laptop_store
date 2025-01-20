@@ -33,60 +33,46 @@ class _ManageScreenState extends State<ManageScreen> {
   TextEditingController searchController = TextEditingController();
   String searchQuery = '';
 
-  // Fungsi untuk mengimpor data dari file CSV
   Future<void> importData(BuildContext context) async {
-    print(
-        "Import Data function called"); // Log untuk memastikan fungsi dipanggil
+    print("Import Data function called");
     try {
-      // Memilih file CSV menggunakan FilePicker
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom, // Hanya file dengan tipe tertentu yang diizinkan
-        allowedExtensions: ['csv'], // Ekstensi file yang diizinkan
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
       );
 
       if (result != null) {
-        print(
-            "File picked: ${result.files.single.name}"); // Menampilkan nama file yang dipilih
-        final fileBytes =
-            result.files.single.bytes; // Membaca byte dari file yang dipilih
+        print("File picked: ${result.files.single.name}");
+        final fileBytes = result.files.single.bytes;
 
-        // Memastikan byte file berhasil dibaca
         if (fileBytes != null) {
           final csvData = CsvToListConverter().convert(
-            String.fromCharCodes(fileBytes), // Mengonversi byte ke string
-            eol: '\n', // Menentukan akhir baris sebagai pemisah
+            String.fromCharCodes(fileBytes),
+            eol: '\n',
           );
 
-          print("CSV Data: $csvData"); // Log data CSV untuk debugging
+          print("CSV Data: $csvData");
 
-          // Mengirim data CSV ke callback untuk diperbarui di tampilan lain
           widget.onlaptopImported(csvData.skip(1).toList());
 
-          // Memasukkan data CSV ke Firestore
           for (var row in csvData.skip(1)) {
-            // Melewati header (baris pertama)
             if (row.length >= 6) {
-              // Memastikan jumlah kolom mencukupi
               try {
                 await FirebaseFirestore.instance.collection('laptop').add({
                   'Brand': row[0],
                   'Deskripsi': row[1],
                   'Foto_Laptop': row[2],
-                  'Harga': int.tryParse(row[3].toString()) ??
-                      0, // Konversi ke integer
+                  'Harga': int.tryParse(row[3].toString()) ?? 0,
                   'Nama_Laptop': row[4],
-                  'Stok': int.tryParse(row[5].toString()) ??
-                      0, // Konversi ke integer
+                  'Stok': int.tryParse(row[5].toString()) ?? 0,
                 });
-                print(
-                    'Data added: ${row[0]}, ${row[4]}'); // Log data yang berhasil ditambahkan
+                print('Data added: ${row[0]}, ${row[4]}');
               } catch (e) {
-                print('Error adding data: $e'); // Log jika terjadi kesalahan
+                print('Error adding data: $e');
               }
             }
           }
 
-          // Menampilkan dialog sukses impor
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -101,7 +87,6 @@ class _ManageScreenState extends State<ManageScreen> {
             ),
           );
         } else {
-          // Menampilkan dialog jika byte file gagal dibaca
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -117,11 +102,11 @@ class _ManageScreenState extends State<ManageScreen> {
           );
         }
       } else {
-        print("No file selected"); // Log jika pengguna tidak memilih file
+        print("No file selected");
       }
     } catch (e) {
-      print("Error importing data: $e"); // Log jika terjadi kesalahan
-      // Menampilkan dialog jika terjadi kesalahan saat impor
+      print("Error importing data: $e");
+
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -138,24 +123,20 @@ class _ManageScreenState extends State<ManageScreen> {
     }
   }
 
-// Fungsi untuk mengekspor data ke format PDF
   Future<void> exportDataToPDF() async {
     try {
-      final pdf = pw.Document(); // Membuat dokumen PDF baru
+      final pdf = pw.Document();
       final data =
           await FirebaseFirestore.instance.collection(widget.collection).get();
 
-      // Menambahkan font kustom
       final font = await PdfGoogleFonts.nunitoRegular();
       final boldFont = await PdfGoogleFonts.nunitoBold();
 
-      // Menambahkan halaman ke PDF
       pdf.addPage(
         pw.MultiPage(
-          pageFormat: PdfPageFormat.a4.landscape, // Format halaman horizontal
+          pageFormat: PdfPageFormat.a4.landscape,
           build: (pw.Context context) {
             return [
-              // Header laporan
               pw.Header(
                 level: 0,
                 child: pw.Text(
@@ -166,14 +147,13 @@ class _ManageScreenState extends State<ManageScreen> {
                   ),
                 ),
               ),
-              pw.SizedBox(height: 20), // Spasi kosong
-              // Daftar data laptop
+              pw.SizedBox(height: 20),
               pw.Column(
                 children: data.docs.map((doc) {
-                  final d = doc.data(); // Mengambil data dari dokumen
+                  final d = doc.data();
                   final deskripsi = d['Deskripsi'] ?? '';
                   final truncatedDeskripsi = deskripsi.length > 100
-                      ? '${deskripsi.substring(0, 100)}...' // Memotong deskripsi panjang
+                      ? '${deskripsi.substring(0, 100)}...'
                       : deskripsi;
 
                   return pw.Container(
@@ -186,7 +166,6 @@ class _ManageScreenState extends State<ManageScreen> {
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        // Menampilkan informasi laptop
                         pw.Text(
                           'Brand: ${d['Brand'] ?? ''}',
                           style: pw.TextStyle(
@@ -236,14 +215,13 @@ class _ManageScreenState extends State<ManageScreen> {
         ),
       );
 
-      // Membagikan PDF melalui aplikasi lain
       await Printing.sharePdf(
-        bytes: await pdf.save(), // Menyimpan dokumen PDF
+        bytes: await pdf.save(),
         filename:
-            '${widget.collection}-report-${DateTime.now().toString()}.pdf', // Nama file PDF
+            '${widget.collection}-report-${DateTime.now().toString()}.pdf',
       );
     } catch (e) {
-      print("Error exporting PDF: $e"); // Log jika terjadi kesalahan ekspor
+      print("Error exporting PDF: $e");
     }
   }
 
@@ -298,7 +276,6 @@ class _ManageScreenState extends State<ManageScreen> {
           .doc(docId)
           .delete();
 
-      // Menampilkan dialog untuk notifikasi
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -505,8 +482,8 @@ class _ManageScreenState extends State<ManageScreen> {
                 ),
               ),
               Positioned(
-                bottom: 20, // Jarak dari bawah stack
-                left: 16, // Jarak dari kiri
+                bottom: 20,
+                left: 16,
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('transaksi')
@@ -528,7 +505,7 @@ class _ManageScreenState extends State<ManageScreen> {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // Warna teks
+                        color: Colors.white,
                       ),
                     );
                   },
@@ -574,7 +551,6 @@ class _ManageScreenState extends State<ManageScreen> {
 
                         final data = snapshot.data!.docs;
 
-                        // Filter data based on search query
                         final filteredData = data.where((doc) {
                           final laptop = doc.data() as Map<String, dynamic>;
                           final searchString =

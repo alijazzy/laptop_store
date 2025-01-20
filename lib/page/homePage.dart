@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:laptop_store/page/addProduct.dart';
 import 'package:laptop_store/page/product_detail.dart';
 import 'shoppingCartPage.dart';
@@ -301,15 +302,79 @@ class _HomePageState extends State<HomePage> {
             stream: FirebaseFirestore.instance.collection('laptop').snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
+                return SliverPadding(
+                  padding: const EdgeInsets.all(16.0),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 2 / 3,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                  height: 16,
+                                  width: double.infinity,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Container(
+                                  height: 16,
+                                  width: 100,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                  height: 40,
+                                  width: double.infinity,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      childCount: 6,
+                    ),
+                  ),
                 );
               }
+
               if (snapshot.hasError) {
                 return const SliverFillRemaining(
                   child: Center(child: Text('Error fetching data')),
                 );
               }
+
               final laptops = snapshot.data?.docs.where((doc) {
                     final data = doc.data() as Map<String, dynamic>;
                     final matchesSearch = data['Nama_Laptop']
@@ -342,149 +407,147 @@ class _HomePageState extends State<HomePage> {
                       final data =
                           laptops[index].data() as Map<String, dynamic>;
                       return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ProductDetail(idLaptop: laptops[index].id),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductDetail(idLaptop: laptops[index].id),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(10),
-                                    ),
-                                    child: data['Foto_Laptop'] == '-' ||
-                                            data['Foto_Laptop'] == null
-                                        ? Container(
-                                            color: Colors.grey[300],
-                                            child: const Icon(
-                                              Icons.image_not_supported,
-                                              size: 50,
-                                              color: Colors.black,
-                                            ),
-                                            alignment: Alignment.center,
-                                          )
-                                        : Image.asset(
-                                            'assets/${data['Foto_Laptop']}',
-                                            fit: BoxFit.contain,
-                                            width: double.infinity,
-                                            errorBuilder: (BuildContext context,
-                                                Object error,
-                                                StackTrace? stackTrace) {
-                                              return Container(
-                                                color: Colors.grey[300],
-                                                child: const Icon(
-                                                  Icons.image_not_supported,
-                                                  size: 50,
-                                                  color: Colors.black,
-                                                ),
-                                                alignment: Alignment.center,
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(10),
+                                  ),
+                                  child: data['Foto_Laptop'] == '-' ||
+                                          data['Foto_Laptop'] == null
+                                      ? Container(
+                                          color: Colors.grey[300],
+                                          child: const Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                            color: Colors.black,
+                                          ),
+                                          alignment: Alignment.center,
+                                        )
+                                      : Image.asset(
+                                          'assets/${data['Foto_Laptop']}',
+                                          fit: BoxFit.contain,
+                                          width: double.infinity,
+                                          errorBuilder: (BuildContext context,
+                                              Object error,
+                                              StackTrace? stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[300],
+                                              child: const Icon(
+                                                Icons.image_not_supported,
+                                                size: 50,
+                                                color: Colors.black,
+                                              ),
+                                              alignment: Alignment.center,
+                                            );
+                                          },
+                                        ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  data['Nama_Laptop'],
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text(
+                                  formatRupiah(data['Harga']),
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Provider.of<CartService>(context,
+                                              listen: false)
+                                          .addItem(
+                                        laptops[index].id,
+                                        data['Nama_Laptop'],
+                                        data['Brand'],
+                                        data['Harga'],
+                                        data['Foto_Laptop'],
+                                      );
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: const Text('Added to cart'),
+                                          duration: const Duration(seconds: 1),
+                                          action: SnackBarAction(
+                                            label: 'VIEW CART',
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const CartPage()),
                                               );
                                             },
                                           ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    data['Nama_Laptop'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.black,
+                                      padding: const EdgeInsets.only(
+                                          left: 25, right: 25),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  child: Text(
-                                    formatRupiah(data['Harga']),
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        Provider.of<CartService>(context,
-                                                listen: false)
-                                            .addItem(
-                                          laptops[index].id,
-                                          data['Nama_Laptop'],
-                                          data['Brand'],
-                                          data['Harga'],
-                                          data['Foto_Laptop'],
-                                        );
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content:
-                                                const Text('Added to cart'),
-                                            duration:
-                                                const Duration(seconds: 1),
-                                            action: SnackBarAction(
-                                              label: 'VIEW CART',
-                                              onPressed: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          const CartPage()),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.black,
-                                        padding: const EdgeInsets.only(
-                                            left: 25, right: 25),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: const [
-                                          Icon(Icons.shopping_cart,
-                                              color: Colors.white),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Add to Cart',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
-                                        ],
-                                      ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: const [
+                                        Icon(Icons.shopping_cart,
+                                            color: Colors.white),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Add to Cart',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ));
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                     childCount: laptops.length,
                   ),
                 ),
               );
             },
-          ),
+          )
         ],
       ),
     );
@@ -493,6 +556,58 @@ class _HomePageState extends State<HomePage> {
   String formatRupiah(int harga) {
     final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ');
     return formatter.format(harga);
+  }
+
+  Widget _buildSkeletonItem() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                height: 16,
+                width: double.infinity,
+                color: Colors.white,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Container(
+                height: 16,
+                width: 100,
+                color: Colors.white,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                height: 40,
+                width: double.infinity,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

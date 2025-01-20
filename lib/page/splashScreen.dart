@@ -18,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => LoginPage(), // Ganti dengan WelcomePage
+        builder: (context) => LoginPage(),
       ),
     );
   }
@@ -29,9 +29,8 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(
-                'assets/Logo/background.jpg'), // Ganti dengan nama file gambar background Anda
-            fit: BoxFit.cover, // Mengatur gambar untuk menutupi seluruh area
+            image: AssetImage('assets/Logo/background.jpg'),
+            fit: BoxFit.cover,
           ),
         ),
         child: Center(
@@ -41,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen> {
               Image(
                 image: AssetImage('assets/Logo/logo.png'),
                 width: 220,
-                height: 220, // Ganti height agar tidak terlalu tinggi
+                height: 220,
               ),
             ],
           ),

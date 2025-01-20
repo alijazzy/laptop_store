@@ -27,7 +27,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
   void initState() {
     super.initState();
 
-    // Initialize text controllers with initial data
     brandController = TextEditingController(text: widget.initialData['Brand']);
     deskripsiController =
         TextEditingController(text: widget.initialData['Deskripsi']);
@@ -43,7 +42,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
 
   @override
   void dispose() {
-    // Clean up controllers
     brandController.dispose();
     deskripsiController.dispose();
     fotoLaptopController.dispose();
@@ -89,7 +87,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // Brand input field
             TextFormField(
               controller: brandController,
               decoration: const InputDecoration(
@@ -102,8 +99,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Description input field
             TextFormField(
               controller: deskripsiController,
               decoration: const InputDecoration(
@@ -116,8 +111,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Laptop Photo input field
             TextFormField(
               controller: fotoLaptopController,
               decoration: const InputDecoration(
@@ -130,8 +123,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Price input field
             TextFormField(
               controller: hargaController,
               keyboardType: TextInputType.number,
@@ -145,8 +136,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Laptop Name input field
             TextFormField(
               controller: namaLaptopController,
               decoration: const InputDecoration(
@@ -159,8 +148,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Stock input field
             TextFormField(
               controller: stokController,
               keyboardType: TextInputType.number,
@@ -174,11 +161,8 @@ class _FormEditScreenState extends State<FormEditScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Save Changes button
             ElevatedButton(
               onPressed: () async {
-                // Check if the data has changed
                 bool isDataChanged =
                     brandController.text != widget.initialData['Brand'] ||
                         deskripsiController.text !=
@@ -194,7 +178,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
 
                 if (isDataChanged) {
                   try {
-                    // Update data in Firestore
                     await FirebaseFirestore.instance
                         .collection('laptop')
                         .doc(widget.documentId)
@@ -207,7 +190,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
                       'Stok': int.tryParse(stokController.text) ?? 0,
                     });
 
-                    // Show success dialog
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
@@ -218,9 +200,8 @@ class _FormEditScreenState extends State<FormEditScreen> {
                             TextButton(
                               child: const Text('OK'),
                               onPressed: () {
-                                Navigator.of(context).pop(); // Close the dialog
-                                Navigator.pop(
-                                    context); // Go back to the previous screen
+                                Navigator.of(context).pop();
+                                Navigator.pop(context);
                               },
                             ),
                           ],
@@ -228,7 +209,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
                       },
                     );
                   } catch (e) {
-                    // Show error dialog
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
@@ -240,7 +220,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
                               child: const Text('OK'),
                               onPressed: () {
                                 Navigator.of(context).pop();
-                                // Close the dialog
                               },
                             ),
                           ],
@@ -249,7 +228,6 @@ class _FormEditScreenState extends State<FormEditScreen> {
                     );
                   }
                 } else {
-                  // Show dialog if no changes were made
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -261,7 +239,7 @@ class _FormEditScreenState extends State<FormEditScreen> {
                             child: const Text('OK'),
                             onPressed: () {
                               Navigator.of(context).pop();
-                              Navigator.pop(context); // Close the dialog
+                              Navigator.pop(context);
                             },
                           ),
                         ],
@@ -274,7 +252,7 @@ class _FormEditScreenState extends State<FormEditScreen> {
                 backgroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 textStyle: const TextStyle(fontSize: 16),
-                foregroundColor: Colors.white, // Set text color to white
+                foregroundColor: Colors.white,
               ),
               child: const Text('Save Changes'),
             ),

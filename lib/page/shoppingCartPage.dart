@@ -23,12 +23,10 @@ class _CartPageState extends State<CartPage> {
 
   Future<void> _saveTransactionToFirestore(
       List<CartItem> items, int total) async {
-    // Create a new batch
     final batch = FirebaseFirestore.instance.batch();
     final laptopCollection = FirebaseFirestore.instance.collection('laptop');
 
     try {
-      // First, check if we have enough stock for all items
       for (var item in items) {
         final laptopDoc = await laptopCollection.doc(item.id).get();
         if (!laptopDoc.exists) {
@@ -41,7 +39,6 @@ class _CartPageState extends State<CartPage> {
         }
       }
 
-      // Prepare transaction data
       final List<Map<String, dynamic>> barang = items.map((item) {
         return {
           "ID_Laptop": item.id,
@@ -54,7 +51,6 @@ class _CartPageState extends State<CartPage> {
       final String tanggalTransaksi =
           DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-      // Add transaction to batch
       final transactionRef =
           FirebaseFirestore.instance.collection('transaksi').doc();
       batch.set(transactionRef, {
@@ -64,25 +60,20 @@ class _CartPageState extends State<CartPage> {
         "payment_method": _selectedPaymentMethod,
       });
 
-      // Update stock for each item
       for (var item in items) {
         final laptopRef = laptopCollection.doc(item.id);
         batch.update(laptopRef, {'Stok': FieldValue.increment(-item.quantity)});
       }
 
-      // Commit the batch
       await batch.commit();
 
-      // Clear the cart
       Provider.of<CartService>(context, listen: false).clear();
 
-      // Reset payment method and error message
       setState(() {
         _selectedPaymentMethod = null;
         _errorMessage = null;
       });
 
-      // Show success dialog
       if (!mounted) return;
       showDialog(
         context: context,
@@ -108,8 +99,8 @@ class _CartPageState extends State<CartPage> {
               TextButton(
                 child: const Text('OK'),
                 onPressed: () {
-                  Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Return to previous screen
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                 },
               ),
             ],
